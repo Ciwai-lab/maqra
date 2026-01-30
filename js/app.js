@@ -1,12 +1,14 @@
 const citySelect = document.getElementById('city');
 
 const times = {
+    imsyak: document.getElementById('imsyak'),
     subuh: document.getElementById('subuh'),
     dzuhur: document.getElementById('dzuhur'),
     ashar: document.getElementById('ashar'),
     maghrib: document.getElementById('maghrib'),
     isya: document.getElementById('isya'),
 };
+
 
 const countdownEl = document.getElementById('countdown');
 
@@ -21,6 +23,7 @@ async function loadPrayerTimes(city) {
         const data = await res.json();
         const t = data.data.timings;
 
+        times.imsyak.textContent = t.Imsak;
         times.subuh.textContent = t.Fajr;
         times.dzuhur.textContent = t.Dhuhr;
         times.ashar.textContent = t.Asr;
@@ -29,7 +32,8 @@ async function loadPrayerTimes(city) {
 
         startCountdown(t);
     } catch (err) {
-        console.error('Gagal load jadwal sholat', err);
+        countdownEl.textContent = '--:--:--';
+        console.error('Gagal load jadwal sholat');
     }
 }
 
@@ -41,40 +45,47 @@ function startCountdown(timings) {
 
     function tick() {
         const now = new Date();
-        const prayers = [
-            timings.Fajr,
-            timings.Dhuhr,
-            timings.Asr,
-            timings.Maghrib,
-            timings.Isha,
+        const prayerList = [
+            { name: 'Imsyak', time: timings.Imsak },
+            { name: 'Subuh', time: timings.Fajr },
+            { name: 'Dzuhur', time: timings.Dhuhr },
+            { name: 'Ashar', time: timings.Asr },
+            { name: 'Maghrib', time: timings.Maghrib },
+            { name: 'Isya', time: timings.Isha },
         ];
 
-        let nextTime = null;
+        let next = null;
+        let nextName = '';
 
-        for (let time of prayers) {
-            const [h, m] = time.split(':');
+        for (let p of prayerList) {
+            const [h, m] = p.time.split(':');
             const d = new Date();
             d.setHours(h, m, 0);
 
             if (d > now) {
-                nextTime = d;
+                next = d;
+                nextName = p.name;
                 break;
             }
         }
 
-        if (!nextTime) {
-            const [h, m] = prayers[0].split(':');
-            nextTime = new Date();
-            nextTime.setDate(nextTime.getDate() + 1);
-            nextTime.setHours(h, m, 0);
+        if (!next) {
+            const [h, m] = prayerList[0].time.split(':');
+            next = new Date();
+            next.setDate(next.getDate() + 1);
+            next.setHours(h, m, 0);
+            nextName = prayerList[0].name;
         }
 
-        const diff = nextTime - now;
+        const diff = next - now;
         const hh = String(Math.floor(diff / 3600000)).padStart(2, '0');
         const mm = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
         const ss = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
 
         countdownEl.textContent = `${hh}:${mm}:${ss}`;
+
+        document.getElementById('nextPrayer').textContent =
+            `Menuju ${nextName}`;
     }
 
     tick();
@@ -112,3 +123,16 @@ loadPrayerTimes(citySelect.value);
 citySelect.addEventListener('change', () => {
     loadPrayerTimes(citySelect.value);
 });
+
+// load last city
+const savedCity = localStorage.getItem('maqra-city');
+if (savedCity) {
+    citySelect.value = savedCity;
+}
+
+// save on change
+citySelect.addEventListener('change', () => {
+    localStorage.setItem('maqra-city', citySelect.value);
+    loadPrayerTimes(citySelect.value);
+});
+
