@@ -1,0 +1,73 @@
+* {
+    box-sizing: border-box;
+    font-family: system-ui, sans-serif;
+}
+
+body {
+    margin: 0;
+    background: #f9fafb;
+    color: #111;
+}
+
+.container {
+    max-width: 480px;
+    margin: auto;
+    padding: 24px;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 2rem;
+}
+
+.subtitle {
+    color: #666;
+    margin-top: 4px;
+}
+
+.location,
+.countdown,
+.live {
+    margin-top: 24px;
+}
+
+.prayer-times {
+    margin-top: 24px;
+}
+
+.time {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.countdown h2 {
+    font-size: 2rem;
+    margin: 8px 0 0;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    background: #111;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+.hidden {
+    display: none;
+}
+
+footer {
+    margin-top: 48px;
+    text-align: center;
+    color: #aaa;
+    font-size: 0.85rem;
+}

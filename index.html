@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Maqra – Penjaga Waktu</title>
+
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+
+    <main class="container">
+
+        <header class="header">
+            <h1>Maqra</h1>
+            <p class="subtitle">Penjaga ritme harian</p>
+        </header>
+
+        <!-- Lokasi -->
+        <section class="location">
+            <label for="city">Lokasi</label>
+            <select id="city">
+                <option value="jakarta">Jakarta</option>
+                <option value="bandung">Bandung</option>
+                <option value="yogyakarta">Yogyakarta</option>
+            </select>
+        </section>
+
+        <!-- Jadwal Sholat -->
+        <section class="prayer-times">
+            <div class="time"><span>Subuh</span><strong id="subuh">--:--</strong></div>
+            <div class="time"><span>Dzuhur</span><strong id="dzuhur">--:--</strong></div>
+            <div class="time"><span>Ashar</span><strong id="ashar">--:--</strong></div>
+            <div class="time"><span>Maghrib</span><strong id="maghrib">--:--</strong></div>
+            <div class="time"><span>Isya</span><strong id="isya">--:--</strong></div>
+        </section>
+
+        <!-- Countdown -->
+        <section class="countdown">
+            <p>Menuju sholat berikutnya</p>
+            <h2 id="countdown">--:--:--</h2>
+        </section>
+
+        <!-- Live Masjidil Haram -->
+        <section class="live">
+            <button id="toggleLive">Lihat kondisi Masjidil Haram (Live)</button>
+
+            <div id="liveContainer" class="hidden">
+                <!-- nanti iframe live di sini -->
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p>maqra.ciwai.dev</p>
+        </footer>
+
+    </main>
+
+    <script src="js/app.js"></script>
+</body>
+
+</html>
