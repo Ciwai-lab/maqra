@@ -39,6 +39,7 @@ citySelect.addEventListener('change', () => {
 // JADWAL SHOLAT (MYQURAN API)
 // ======================
 async function loadPrayerTimes(cityId) {
+    const countdownEl = document.getElementById('countdown');
     countdownEl.textContent = '...';
 
     const now = new Date();
@@ -46,12 +47,13 @@ async function loadPrayerTimes(cityId) {
     const m = String(now.getMonth() + 1).padStart(2, '0');
     const d = String(now.getDate()).padStart(2, '0');
 
+    const url = `https://api.myquran.com/v2/sholat/jadwal/${cityId}/${y}/${m}/${d}`;
+
     try {
-        const res = await fetch(`https://api.myquran.com/v2/sholat/jadwal/${cityId}/${y}/${m}/${d}`);
+        const res = await fetch(url);
         const json = await res.json();
         const t = json.data.jadwal;
 
-        // Update UI Text
         times.imsyak.textContent = t.imsak;
         times.subuh.textContent = t.subuh;
         times.dzuhur.textContent = t.dzuhur;
@@ -62,7 +64,7 @@ async function loadPrayerTimes(cityId) {
         startCountdown(t);
     } catch (err) {
         countdownEl.textContent = 'Error';
-        console.error('API Error:', err);
+        console.error('Cek koneksi atau ID Kota ente bro:', err);
     }
 }
 
