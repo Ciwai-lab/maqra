@@ -39,7 +39,6 @@ citySelect.addEventListener('change', () => {
 // JADWAL SHOLAT (MYQURAN API)
 // ======================
 async function loadPrayerTimes(cityId) {
-    const countdownEl = document.getElementById('countdown');
     countdownEl.textContent = '...';
 
     const now = new Date();
@@ -52,19 +51,22 @@ async function loadPrayerTimes(cityId) {
     try {
         const res = await fetch(url);
         const json = await res.json();
-        const t = json.data.jadwal;
 
-        times.imsyak.textContent = t.imsak;
-        times.subuh.textContent = t.subuh;
-        times.dzuhur.textContent = t.dzuhur;
-        times.ashar.textContent = t.ashar;
-        times.maghrib.textContent = t.maghrib;
-        times.isya.textContent = t.isya;
-
-        startCountdown(t);
+        if (json.status) {
+            const t = json.data.jadwal;
+            times.imsyak.textContent = t.imsak;
+            times.subuh.textContent = t.subuh;
+            times.dzuhur.textContent = t.dzuhur;
+            times.ashar.textContent = t.ashar;
+            times.maghrib.textContent = t.maghrib;
+            times.isya.textContent = t.isya;
+            startCountdown(t);
+        } else {
+            throw new Error(json.message);
+        }
     } catch (err) {
         countdownEl.textContent = 'Error';
-        console.error('Cek koneksi atau ID Kota ente bro:', err);
+        console.error('API Error:', err);
     }
 }
 
@@ -108,6 +110,19 @@ function startCountdown(t) {
             nextId = prayerList[0].id;
         }
 
+        // ======================
+        // LOGIKA STORAGE & EVENT
+        // ======================
+        const savedCity = localStorage.getItem('maqra-city') || citySelect.value;
+        citySelect.value = savedCity;
+
+        loadPrayerTimes(citySelect.value);
+
+        citySelect.addEventListener('change', () => {
+            localStorage.setItem('maqra-city', citySelect.value);
+            loadPrayerTimes(citySelect.value);
+        });
+
         const diff = next - now;
         const hh = String(Math.floor(diff / 3600000)).padStart(2, '0');
         const mm = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
@@ -116,7 +131,6 @@ function startCountdown(t) {
         countdownEl.textContent = `${hh}:${mm}:${ss}`;
         nextPrayerEl.textContent = `Menuju ${nextName}`;
 
-        // Reset & Set Highlight
         Object.keys(times).forEach(key => {
             times[key].parentElement.classList.remove('active-prayer');
         });
