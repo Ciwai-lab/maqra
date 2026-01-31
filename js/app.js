@@ -52,6 +52,7 @@ async function loadPrayerTimes(cityId) {
         const res = await fetch(url);
         const json = await res.json();
 
+        // Cek apakah data dari MyQuran beneran ada
         if (json.status && json.data && json.data.jadwal) {
             const t = json.data.jadwal;
             times.imsyak.textContent = t.imsak;
@@ -60,98 +61,127 @@ async function loadPrayerTimes(cityId) {
             times.ashar.textContent = t.ashar;
             times.maghrib.textContent = t.maghrib;
             times.isya.textContent = t.isya;
-            startCountdown(t);
+
+            // Samakan format property untuk fungsi startCountdown
+            startCountdown({
+                Imsak: t.imsak,
+                Fajr: t.subuh,
+                Dhuhr: t.dzuhur,
+                Asr: t.ashar,
+                Maghrib: t.maghrib,
+                Isha: t.isya
+            });
         } else {
-            throw new Error(json.message || "Jadwal tidak tersedia");
+            throw new Error("Data MyQuran kosong, switch ke fallback...");
         }
     } catch (err) {
-        countdownEl.textContent = 'Error';
-        console.error('API Error:', err);
+        console.warn(err.message);
+        // FALLBACK: Pake API Aladhan kalau MyQuran error
+        // Kita butuh nama kota asli, jadi kita ambil dari teks select-nya
+        const cityName = citySelect.options[citySelect.selectedIndex].text;
+        const fallbackUrl = `https://api.aladhan.com/v1/timingsByCity?city=${cityName}&country=Indonesia&method=11`;
+
+        try {
+            const resFallback = await fetch(fallbackUrl);
+            const dataFallback = await resFallback.json();
+            const t = dataFallback.data.timings;
+
+            times.imsyak.textContent = t.Imsak;
+            times.subuh.textContent = t.Fajr;
+            times.dzuhur.textContent = t.Dhuhr;
+            times.ashar.textContent = t.Asr;
+            times.maghrib.textContent = t.Maghrib;
+            times.isya.textContent = t.Isha;
+
+            startCountdown(t);
+        } catch (fallbackErr) {
+            countdownEl.textContent = 'Error Total';
+            console.error('Semua API tumbang, bro:', fallbackErr);
+        }
     }
-}
 
-function startCountdown(t) {
-    clearInterval(window._countdown);
+    function startCountdown(t) {
+        clearInterval(window._countdown);
 
-    const prayerList = [
-        { id: 'imsyak', name: 'Imsyak', time: t.imsak },
-        { id: 'subuh', name: 'Subuh', time: t.subuh },
-        { id: 'dzuhur', name: 'Dzuhur', time: t.dzuhur },
-        { id: 'ashar', name: 'Ashar', time: t.ashar },
-        { id: 'maghrib', name: 'Maghrib', time: t.maghrib },
-        { id: 'isya', name: 'Isya', time: t.isya },
-    ];
+        const prayerList = [
+            { id: 'imsyak', name: 'Imsyak', time: t.imsak },
+            { id: 'subuh', name: 'Subuh', time: t.subuh },
+            { id: 'dzuhur', name: 'Dzuhur', time: t.dzuhur },
+            { id: 'ashar', name: 'Ashar', time: t.ashar },
+            { id: 'maghrib', name: 'Maghrib', time: t.maghrib },
+            { id: 'isya', name: 'Isya', time: t.isya },
+        ];
 
-    function tick() {
-        const now = new Date();
-        let next = null;
-        let nextName = '';
-        let nextId = '';
+        function tick() {
+            const now = new Date();
+            let next = null;
+            let nextName = '';
+            let nextId = '';
 
-        for (let p of prayerList) {
-            const [h, m] = p.time.split(':');
-            const d = new Date();
-            d.setHours(h, m, 0);
+            for (let p of prayerList) {
+                const [h, m] = p.time.split(':');
+                const d = new Date();
+                d.setHours(h, m, 0);
 
-            if (d > now) {
-                next = d;
-                nextName = p.name;
-                nextId = p.id;
-                break;
+                if (d > now) {
+                    next = d;
+                    nextName = p.name;
+                    nextId = p.id;
+                    break;
+                }
+            }
+
+            if (!next) {
+                const [h, m] = prayerList[0].time.split(':');
+                next = new Date();
+                next.setDate(next.getDate() + 1);
+                next.setHours(h, m, 0);
+                nextName = prayerList[0].name;
+                nextId = prayerList[0].id;
+            }
+
+            // ======================
+            // LOGIKA STORAGE & EVENT
+            // ======================
+            const savedCity = localStorage.getItem('maqra-city') || citySelect.value;
+            citySelect.value = savedCity;
+
+            loadPrayerTimes(citySelect.value);
+
+            citySelect.addEventListener('change', () => {
+                localStorage.setItem('maqra-city', citySelect.value);
+                loadPrayerTimes(citySelect.value);
+            });
+
+            const diff = next - now;
+            const hh = String(Math.floor(diff / 3600000)).padStart(2, '0');
+            const mm = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+            const ss = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+
+            countdownEl.textContent = `${hh}:${mm}:${ss}`;
+            nextPrayerEl.textContent = `Menuju ${nextName}`;
+
+            Object.keys(times).forEach(key => {
+                times[key].parentElement.classList.remove('active-prayer');
+            });
+            if (times[nextId]) {
+                times[nextId].parentElement.classList.add('active-prayer');
             }
         }
 
-        if (!next) {
-            const [h, m] = prayerList[0].time.split(':');
-            next = new Date();
-            next.setDate(next.getDate() + 1);
-            next.setHours(h, m, 0);
-            nextName = prayerList[0].name;
-            nextId = prayerList[0].id;
-        }
-
-        // ======================
-        // LOGIKA STORAGE & EVENT
-        // ======================
-        const savedCity = localStorage.getItem('maqra-city') || citySelect.value;
-        citySelect.value = savedCity;
-
-        loadPrayerTimes(citySelect.value);
-
-        citySelect.addEventListener('change', () => {
-            localStorage.setItem('maqra-city', citySelect.value);
-            loadPrayerTimes(citySelect.value);
-        });
-
-        const diff = next - now;
-        const hh = String(Math.floor(diff / 3600000)).padStart(2, '0');
-        const mm = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
-        const ss = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
-
-        countdownEl.textContent = `${hh}:${mm}:${ss}`;
-        nextPrayerEl.textContent = `Menuju ${nextName}`;
-
-        Object.keys(times).forEach(key => {
-            times[key].parentElement.classList.remove('active-prayer');
-        });
-        if (times[nextId]) {
-            times[nextId].parentElement.classList.add('active-prayer');
-        }
+        tick();
+        window._countdown = setInterval(tick, 1000);
     }
 
-    tick();
-    window._countdown = setInterval(tick, 1000);
-}
+    // ======================
+    // LIVE (YOUTUBE)
+    // ======================
+    const toggleBtn = document.getElementById('toggleLive');
+    const liveContainer = document.getElementById('liveContainer');
 
-// ======================
-// LIVE (YOUTUBE)
-// ======================
-const toggleBtn = document.getElementById('toggleLive');
-const liveContainer = document.getElementById('liveContainer');
-
-toggleBtn.addEventListener('click', () => {
-    liveContainer.classList.toggle('hidden');
-    if (!liveContainer.innerHTML) {
-        liveContainer.innerHTML = `<iframe loading="lazy" width="100%" height="240" src="https://www.youtube.com/embed/live_stream?channel=UC9k-yiEpRHMNVOnOi_aQK8w&mute=1&autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
-    }
-});
+    toggleBtn.addEventListener('click', () => {
+        liveContainer.classList.toggle('hidden');
+        if (!liveContainer.innerHTML) {
+            liveContainer.innerHTML = `<iframe loading="lazy" width="100%" height="240" src="https://www.youtube.com/embed/live_stream?channel=UC9k-yiEpRHMNVOnOi_aQK8w&mute=1&autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+        }
+    });
