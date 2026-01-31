@@ -76,8 +76,6 @@ async function loadPrayerTimes(cityId) {
         }
     } catch (err) {
         console.warn(err.message);
-        // FALLBACK: Pake API Aladhan kalau MyQuran error
-        // Kita butuh nama kota asli, jadi kita ambil dari teks select-nya
         const cityName = citySelect.options[citySelect.selectedIndex].text;
         const fallbackUrl = `https://api.aladhan.com/v1/timingsByCity?city=${cityName}&country=Indonesia&method=11`;
 
