@@ -43,8 +43,8 @@ async function loadPrayerTimes(cityId) {
 
     const now = new Date();
     const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, '0');
-    const d = String(now.getDate()).padStart(2, '0');
+    const m = now.getMonth() + 1;
+    const d = now.getDate();
 
     const url = `https://api.myquran.com/v2/sholat/jadwal/${cityId}/${y}/${m}/${d}`;
 
@@ -52,7 +52,7 @@ async function loadPrayerTimes(cityId) {
         const res = await fetch(url);
         const json = await res.json();
 
-        if (json.status) {
+        if (json.status && json.data && json.data.jadwal) {
             const t = json.data.jadwal;
             times.imsyak.textContent = t.imsak;
             times.subuh.textContent = t.subuh;
@@ -62,7 +62,7 @@ async function loadPrayerTimes(cityId) {
             times.isya.textContent = t.isya;
             startCountdown(t);
         } else {
-            throw new Error(json.message);
+            throw new Error(json.message || "Jadwal tidak tersedia");
         }
     } catch (err) {
         countdownEl.textContent = 'Error';
