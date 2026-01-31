@@ -1,6 +1,7 @@
 const citySelect = document.getElementById('city');
 const countdownEl = document.getElementById('countdown');
 const nextPrayerEl = document.getElementById('nextPrayer');
+const clockEl = document.getElementById('realtime-clock');
 
 const times = {
     imsyak: document.getElementById('imsyak'),
@@ -12,11 +13,22 @@ const times = {
 };
 
 // ======================
-// JADWAL SHOLAT (MYQURAN + FALLBACK)
+// CLOCK REALTIME
+// ======================
+function updateClock() {
+    const now = new Date();
+    if (clockEl) {
+        clockEl.textContent = now.toLocaleTimeString('id-ID', { hour12: false });
+    }
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ======================
+// JADWAL SHOLAT (MYQURAN API + FALLBACK)
 // ======================
 async function loadPrayerTimes(cityId) {
     countdownEl.textContent = '...';
-
     const now = new Date();
     const y = now.getFullYear();
     const m = now.getMonth() + 1;
@@ -36,7 +48,7 @@ async function loadPrayerTimes(cityId) {
                 Asr: t.ashar, Maghrib: t.maghrib, Isha: t.isya
             });
         } else {
-            throw new Error("Data MyQuran not found");
+            throw new Error("Data MyQuran kosong");
         }
     } catch (err) {
         console.warn("Switching to Aladhan fallback...");
@@ -44,14 +56,14 @@ async function loadPrayerTimes(cityId) {
         const fallbackUrl = `https://api.aladhan.com/v1/timingsByCity?city=${cityName}&country=Indonesia&method=11`;
 
         try {
-            const resFB = await fetch(fallbackUrl);
-            const dataFB = await resFB.json();
-            const t = dataFB.data.timings;
+            const resFallback = await fetch(fallbackUrl);
+            const dataFallback = await resFallback.json();
+            const t = dataFallback.data.timings;
             updateUI(t.Imsak, t.Fajr, t.Dhuhr, t.Asr, t.Maghrib, t.Isha);
             startCountdown(t);
-        } catch (fbErr) {
-            countdownEl.textContent = 'Error';
-            console.error('Semua API tumbang:', fbErr);
+        } catch (fallbackErr) {
+            countdownEl.textContent = 'Error Total';
+            console.error('Semua API tumbang, bro:', fallbackErr);
         }
     }
 }
@@ -68,20 +80,20 @@ function updateUI(imsyak, subuh, dzuhur, ashar, maghrib, isya) {
 // ======================
 // COUNTDOWN
 // ======================
-function startCountdown(timings) {
+function startCountdown(t) {
     clearInterval(window._countdown);
+
+    const prayerList = [
+        { id: 'imsyak', name: 'Imsyak', time: t.Imsak || t.imsak },
+        { id: 'subuh', name: 'Subuh', time: t.Fajr || t.subuh },
+        { id: 'dzuhur', name: 'Dzuhur', time: t.Dhuhr || t.dzuhur },
+        { id: 'ashar', name: 'Ashar', time: t.Asr || t.ashar },
+        { id: 'maghrib', name: 'Maghrib', time: t.Maghrib || t.maghrib },
+        { id: 'isya', name: 'Isya', time: t.Isha || t.isya },
+    ];
 
     function tick() {
         const now = new Date();
-        const prayerList = [
-            { id: 'imsyak', name: 'Imsyak', time: timings.Imsak || timings.imsak },
-            { id: 'subuh', name: 'Subuh', time: timings.Fajr || timings.subuh },
-            { id: 'dzuhur', name: 'Dzuhur', time: timings.Dhuhr || timings.dzuhur },
-            { id: 'ashar', name: 'Ashar', time: timings.Asr || timings.ashar },
-            { id: 'maghrib', name: 'Maghrib', time: timings.Maghrib || timings.maghrib },
-            { id: 'isya', name: 'Isya', time: timings.Isha || timings.isya },
-        ];
-
         let next = null;
         let nextName = '';
         let nextId = '';
@@ -122,7 +134,7 @@ function startCountdown(timings) {
 }
 
 // ======================
-// LIVE & INIT
+// LIVE (YOUTUBE)
 // ======================
 const toggleBtn = document.getElementById('toggleLive');
 const liveContainer = document.getElementById('liveContainer');
@@ -130,10 +142,13 @@ const liveContainer = document.getElementById('liveContainer');
 toggleBtn.addEventListener('click', () => {
     liveContainer.classList.toggle('hidden');
     if (!liveContainer.innerHTML) {
-        liveContainer.innerHTML = `<iframe width="100%" height="240" src="https://www.youtube.com/embed/live_stream?channel=UC9k-yiEpRHMNVOnOi_aQK8w&mute=1" frameborder="0" allowfullscreen></iframe>`;
+        liveContainer.innerHTML = `<iframe loading="lazy" width="100%" height="240" src="https://www.youtube.com/embed/live_stream?channel=UC9k-yiEpRHMNVOnOi_aQK8w&mute=1&autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
     }
 });
 
+// ======================
+// INIT & STORAGE
+// ======================
 const savedCity = localStorage.getItem('maqra-city') || citySelect.value;
 citySelect.value = savedCity;
 loadPrayerTimes(savedCity);
