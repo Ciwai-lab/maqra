@@ -1,7 +1,6 @@
 const citySelect = document.getElementById('city');
 const countdownEl = document.getElementById('countdown');
 const nextPrayerEl = document.getElementById('nextPrayer');
-const clockEl = document.getElementById('realtime-clock');
 
 const times = {
     imsyak: document.getElementById('imsyak'),
@@ -13,30 +12,7 @@ const times = {
 };
 
 // ======================
-// CLOCK REALTIME
-// ======================
-function updateClock() {
-    const now = new Date();
-    clockEl.textContent = now.toLocaleTimeString('id-ID', { hour12: false });
-}
-setInterval(updateClock, 1000);
-updateClock();
-
-// ======================
-// INIT & STORAGE
-// ======================
-const savedCity = localStorage.getItem('maqra-city');
-if (savedCity) citySelect.value = savedCity;
-
-loadPrayerTimes(citySelect.value);
-
-citySelect.addEventListener('change', () => {
-    localStorage.setItem('maqra-city', citySelect.value);
-    loadPrayerTimes(citySelect.value);
-});
-
-// ======================
-// JADWAL SHOLAT (MYQURAN API)
+// JADWAL SHOLAT (MYQURAN + FALLBACK)
 // ======================
 async function loadPrayerTimes(cityId) {
     countdownEl.textContent = '...';
@@ -52,134 +28,117 @@ async function loadPrayerTimes(cityId) {
         const res = await fetch(url);
         const json = await res.json();
 
-        // Cek apakah data dari MyQuran beneran ada
         if (json.status && json.data && json.data.jadwal) {
             const t = json.data.jadwal;
-            times.imsyak.textContent = t.imsak;
-            times.subuh.textContent = t.subuh;
-            times.dzuhur.textContent = t.dzuhur;
-            times.ashar.textContent = t.ashar;
-            times.maghrib.textContent = t.maghrib;
-            times.isya.textContent = t.isya;
-
-            // Samakan format property untuk fungsi startCountdown
+            updateUI(t.imsak, t.subuh, t.dzuhur, t.ashar, t.maghrib, t.isya);
             startCountdown({
-                Imsak: t.imsak,
-                Fajr: t.subuh,
-                Dhuhr: t.dzuhur,
-                Asr: t.ashar,
-                Maghrib: t.maghrib,
-                Isha: t.isya
+                Imsak: t.imsak, Fajr: t.subuh, Dhuhr: t.dzuhur,
+                Asr: t.ashar, Maghrib: t.maghrib, Isha: t.isya
             });
         } else {
-            throw new Error("Data MyQuran kosong, switch ke fallback...");
+            throw new Error("Data MyQuran not found");
         }
     } catch (err) {
-        console.warn(err.message);
+        console.warn("Switching to Aladhan fallback...");
         const cityName = citySelect.options[citySelect.selectedIndex].text;
         const fallbackUrl = `https://api.aladhan.com/v1/timingsByCity?city=${cityName}&country=Indonesia&method=11`;
 
         try {
-            const resFallback = await fetch(fallbackUrl);
-            const dataFallback = await resFallback.json();
-            const t = dataFallback.data.timings;
-
-            times.imsyak.textContent = t.Imsak;
-            times.subuh.textContent = t.Fajr;
-            times.dzuhur.textContent = t.Dhuhr;
-            times.ashar.textContent = t.Asr;
-            times.maghrib.textContent = t.Maghrib;
-            times.isya.textContent = t.Isha;
-
+            const resFB = await fetch(fallbackUrl);
+            const dataFB = await resFB.json();
+            const t = dataFB.data.timings;
+            updateUI(t.Imsak, t.Fajr, t.Dhuhr, t.Asr, t.Maghrib, t.Isha);
             startCountdown(t);
-        } catch (fallbackErr) {
-            countdownEl.textContent = 'Error Total';
-            console.error('Semua API tumbang, bro:', fallbackErr);
+        } catch (fbErr) {
+            countdownEl.textContent = 'Error';
+            console.error('Semua API tumbang:', fbErr);
         }
     }
+}
 
-    function startCountdown(t) {
-        clearInterval(window._countdown);
+function updateUI(imsyak, subuh, dzuhur, ashar, maghrib, isya) {
+    times.imsyak.textContent = imsyak;
+    times.subuh.textContent = subuh;
+    times.dzuhur.textContent = dzuhur;
+    times.ashar.textContent = ashar;
+    times.maghrib.textContent = maghrib;
+    times.isya.textContent = isya;
+}
 
+// ======================
+// COUNTDOWN
+// ======================
+function startCountdown(timings) {
+    clearInterval(window._countdown);
+
+    function tick() {
+        const now = new Date();
         const prayerList = [
-            { id: 'imsyak', name: 'Imsyak', time: t.imsak },
-            { id: 'subuh', name: 'Subuh', time: t.subuh },
-            { id: 'dzuhur', name: 'Dzuhur', time: t.dzuhur },
-            { id: 'ashar', name: 'Ashar', time: t.ashar },
-            { id: 'maghrib', name: 'Maghrib', time: t.maghrib },
-            { id: 'isya', name: 'Isya', time: t.isya },
+            { id: 'imsyak', name: 'Imsyak', time: timings.Imsak || timings.imsak },
+            { id: 'subuh', name: 'Subuh', time: timings.Fajr || timings.subuh },
+            { id: 'dzuhur', name: 'Dzuhur', time: timings.Dhuhr || timings.dzuhur },
+            { id: 'ashar', name: 'Ashar', time: timings.Asr || timings.ashar },
+            { id: 'maghrib', name: 'Maghrib', time: timings.Maghrib || timings.maghrib },
+            { id: 'isya', name: 'Isya', time: timings.Isha || timings.isya },
         ];
 
-        function tick() {
-            const now = new Date();
-            let next = null;
-            let nextName = '';
-            let nextId = '';
+        let next = null;
+        let nextName = '';
+        let nextId = '';
 
-            for (let p of prayerList) {
-                const [h, m] = p.time.split(':');
-                const d = new Date();
-                d.setHours(h, m, 0);
-
-                if (d > now) {
-                    next = d;
-                    nextName = p.name;
-                    nextId = p.id;
-                    break;
-                }
-            }
-
-            if (!next) {
-                const [h, m] = prayerList[0].time.split(':');
-                next = new Date();
-                next.setDate(next.getDate() + 1);
-                next.setHours(h, m, 0);
-                nextName = prayerList[0].name;
-                nextId = prayerList[0].id;
-            }
-
-            // ======================
-            // LOGIKA STORAGE & EVENT
-            // ======================
-            const savedCity = localStorage.getItem('maqra-city') || citySelect.value;
-            citySelect.value = savedCity;
-
-            loadPrayerTimes(citySelect.value);
-
-            citySelect.addEventListener('change', () => {
-                localStorage.setItem('maqra-city', citySelect.value);
-                loadPrayerTimes(citySelect.value);
-            });
-
-            const diff = next - now;
-            const hh = String(Math.floor(diff / 3600000)).padStart(2, '0');
-            const mm = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
-            const ss = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
-
-            countdownEl.textContent = `${hh}:${mm}:${ss}`;
-            nextPrayerEl.textContent = `Menuju ${nextName}`;
-
-            Object.keys(times).forEach(key => {
-                times[key].parentElement.classList.remove('active-prayer');
-            });
-            if (times[nextId]) {
-                times[nextId].parentElement.classList.add('active-prayer');
+        for (let p of prayerList) {
+            const [h, m] = p.time.split(':');
+            const d = new Date();
+            d.setHours(h, m, 0);
+            if (d > now) {
+                next = d; nextName = p.name; nextId = p.id;
+                break;
             }
         }
 
-        tick();
-        window._countdown = setInterval(tick, 1000);
+        if (!next) {
+            const [h, m] = prayerList[0].time.split(':');
+            next = new Date();
+            next.setDate(next.getDate() + 1);
+            next.setHours(h, m, 0);
+            nextName = prayerList[0].name;
+            nextId = prayerList[0].id;
+        }
+
+        const diff = next - now;
+        const hh = String(Math.floor(diff / 3600000)).padStart(2, '0');
+        const mm = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+        const ss = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+
+        countdownEl.textContent = `${hh}:${mm}:${ss}`;
+        nextPrayerEl.textContent = `Menuju ${nextName}`;
+
+        Object.values(times).forEach(el => el.parentElement.classList.remove('active-prayer'));
+        if (times[nextId]) times[nextId].parentElement.classList.add('active-prayer');
     }
 
-    // ======================
-    // LIVE (YOUTUBE)
-    // ======================
-    const toggleBtn = document.getElementById('toggleLive');
-    const liveContainer = document.getElementById('liveContainer');
+    tick();
+    window._countdown = setInterval(tick, 1000);
+}
 
-    toggleBtn.addEventListener('click', () => {
-        liveContainer.classList.toggle('hidden');
-        if (!liveContainer.innerHTML) {
-            liveContainer.innerHTML = `<iframe loading="lazy" width="100%" height="240" src="https://www.youtube.com/embed/live_stream?channel=UC9k-yiEpRHMNVOnOi_aQK8w&mute=1&autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
-        }
-    });
+// ======================
+// LIVE & INIT
+// ======================
+const toggleBtn = document.getElementById('toggleLive');
+const liveContainer = document.getElementById('liveContainer');
+
+toggleBtn.addEventListener('click', () => {
+    liveContainer.classList.toggle('hidden');
+    if (!liveContainer.innerHTML) {
+        liveContainer.innerHTML = `<iframe width="100%" height="240" src="https://www.youtube.com/embed/live_stream?channel=UC9k-yiEpRHMNVOnOi_aQK8w&mute=1" frameborder="0" allowfullscreen></iframe>`;
+    }
+});
+
+const savedCity = localStorage.getItem('maqra-city') || citySelect.value;
+citySelect.value = savedCity;
+loadPrayerTimes(savedCity);
+
+citySelect.addEventListener('change', () => {
+    localStorage.setItem('maqra-city', citySelect.value);
+    loadPrayerTimes(citySelect.value);
+});
