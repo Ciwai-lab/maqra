@@ -30,8 +30,10 @@
     <main class="container">
 
         <header class="header">
-            <h1>Maqra</h1>
+            <h1>MaQra</h1>
             <p class="subtitle">Penjaga ritme harian</p>
+            <div id="realtime-clock"
+                style="font-size: 1.5rem; font-weight: 700; margin-top: 10px; color: var(--accent);">00:00:00</div>
         </header>
 
         <!-- Lokasi -->
@@ -96,6 +98,9 @@
             <p>Menuju sholat berikutnya</p>
             <h2 id="countdown">--:--:--</h2>
             <p id="nextPrayer" class="next-prayer"></p>
+            <div class="progress-container">
+                <div id="progress-bar" class="progress-bar"></div>
+            </div>
         </section>
 
         <!-- Live Masjidil Haram -->

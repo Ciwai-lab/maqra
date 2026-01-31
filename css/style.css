@@ -181,3 +181,20 @@ footer {
 .time.imsyak strong {
     color: var(--imsyak-color);
 }
+
+.progress-container {
+    width: 100%;
+    height: 4px;
+    background: #334155;
+    border-radius: 10px;
+    margin-top: 15px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    /* Diupdate via JS */
+    box-shadow: 0 0 10px var(--accent);
+}

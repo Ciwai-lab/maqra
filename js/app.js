@@ -1,6 +1,7 @@
 const citySelect = document.getElementById('city');
 const countdownEl = document.getElementById('countdown');
 const nextPrayerEl = document.getElementById('nextPrayer');
+const clockEl = document.getElementById('realtime-clock');
 
 const times = {
     imsyak: document.getElementById('imsyak'),
@@ -12,12 +13,20 @@ const times = {
 };
 
 // ======================
+// CLOCK REALTIME
+// ======================
+function updateClock() {
+    const now = new Date();
+    clockEl.textContent = now.toLocaleTimeString('id-ID', { hour12: false });
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ======================
 // INIT & STORAGE
 // ======================
 const savedCity = localStorage.getItem('maqra-city');
-if (savedCity) {
-    citySelect.value = savedCity;
-}
+if (savedCity) citySelect.value = savedCity;
 
 loadPrayerTimes(citySelect.value);
 
@@ -30,22 +39,19 @@ citySelect.addEventListener('change', () => {
 // JADWAL SHOLAT (MYQURAN API)
 // ======================
 async function loadPrayerTimes(cityId) {
-    countdownEl.textContent = 'Memuat...';
+    countdownEl.textContent = '...';
 
     const now = new Date();
     const y = now.getFullYear();
     const m = String(now.getMonth() + 1).padStart(2, '0');
     const d = String(now.getDate()).padStart(2, '0');
 
-    // API MyQuran: /sholat/jadwal/{id_kota}/{y}/{m}/{d}
-    const url = `https://api.myquran.com/v2/sholat/jadwal/${cityId}/${y}/${m}/${d}`;
-
     try {
-        const res = await fetch(url);
+        const res = await fetch(`https://api.myquran.com/v2/sholat/jadwal/${cityId}/${y}/${m}/${d}`);
         const json = await res.json();
         const t = json.data.jadwal;
 
-        // Update UI
+        // Update UI Text
         times.imsyak.textContent = t.imsak;
         times.subuh.textContent = t.subuh;
         times.dzuhur.textContent = t.dzuhur;
@@ -60,9 +66,6 @@ async function loadPrayerTimes(cityId) {
     }
 }
 
-// ======================
-// COUNTDOWN & HIGHLIGHT
-// ======================
 function startCountdown(t) {
     clearInterval(window._countdown);
 
@@ -111,9 +114,13 @@ function startCountdown(t) {
         countdownEl.textContent = `${hh}:${mm}:${ss}`;
         nextPrayerEl.textContent = `Menuju ${nextName}`;
 
-        // Highlight Active
-        Object.values(times).forEach(el => el.parentElement.classList.remove('active-prayer'));
-        if (times[nextId]) times[nextId].parentElement.classList.add('active-prayer');
+        // Reset & Set Highlight
+        Object.keys(times).forEach(key => {
+            times[key].parentElement.classList.remove('active-prayer');
+        });
+        if (times[nextId]) {
+            times[nextId].parentElement.classList.add('active-prayer');
+        }
     }
 
     tick();
@@ -121,7 +128,7 @@ function startCountdown(t) {
 }
 
 // ======================
-// LIVE MASJIDIL HARAM
+// LIVE (YOUTUBE)
 // ======================
 const toggleBtn = document.getElementById('toggleLive');
 const liveContainer = document.getElementById('liveContainer');
@@ -129,6 +136,6 @@ const liveContainer = document.getElementById('liveContainer');
 toggleBtn.addEventListener('click', () => {
     liveContainer.classList.toggle('hidden');
     if (!liveContainer.innerHTML) {
-        liveContainer.innerHTML = `<iframe width="100%" height="240" src="https://www.youtube.com/embed/live_stream?channel=UC9k-yiEpRHMNVOnOi_aQK8w&mute=1&autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+        liveContainer.innerHTML = `<iframe loading="lazy" width="100%" height="240" src="https://www.youtube.com/embed/live_stream?channel=UC9k-yiEpRHMNVOnOi_aQK8w&mute=1&autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
     }
 });
