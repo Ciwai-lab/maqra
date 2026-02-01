@@ -174,7 +174,7 @@ toggleBtn.addEventListener('click', () => {
         loading="lazy"
         width="100%"
         height="240"
-        src="https://www.youtube.com/embed/live_stream?channel=UCc3Jj0zK7nLq8lJt7RkX1Vw&mute=1"
+        src="https://www.youtube.com/embed/7-Qf3g-0xEI?mute=1"
         frameborder="0"
         allow="autoplay; encrypted-media"
         allowfullscreen>
