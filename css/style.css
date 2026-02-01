@@ -3,8 +3,9 @@
     --card-bg: #1e293b;
     --text-primary: #f8fafc;
     --text-secondary: #94a3b8;
-    --accent: #38bdf8;
-    --imsyak-color: #fbbf24;
+
+    --accent: #4ade80;
+    --imsyak-color: #86efac;
 }
 
 * {
@@ -38,7 +39,7 @@ body {
     font-size: 2.5rem;
     font-weight: 800;
     letter-spacing: -1px;
-    background: linear-gradient(to right, #38bdf8, #818cf8);
+    background: linear-gradient(to right, #4ade80, #22c55e);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -49,7 +50,6 @@ body {
     margin-top: 5px;
 }
 
-/* Custom Select */
 .location label {
     font-size: 0.75rem;
     text-transform: uppercase;
@@ -110,10 +110,9 @@ body {
 
 .active-prayer strong {
     color: var(--accent);
-    text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+    text-shadow: 0 0 12px rgba(74, 222, 128, 0.45);
 }
 
-/* Countdown Section */
 .countdown {
     text-align: center;
     padding: 30px;
@@ -177,7 +176,6 @@ footer {
     opacity: 0.6;
 }
 
-/* Specific Style for Imsyak */
 .time.imsyak strong {
     color: var(--imsyak-color);
 }
@@ -192,9 +190,8 @@ footer {
 }
 
 .progress-bar {
-    height: 100%;
-    background: var(--accent);
-    width: 0%;
-    /* Diupdate via JS */
-    box-shadow: 0 0 10px var(--accent);
+    background: linear-gradient(90deg,
+            #86efac,
+            #4ade80,
+            #22c55e);
 }
