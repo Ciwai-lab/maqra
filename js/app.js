@@ -24,6 +24,25 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
+// =====================
+// Fungsi Tanggal
+// =====================
+function updateDate() {
+    const el = document.getElementById("today-date");
+    const now = new Date();
+
+    const options = {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    };
+
+    el.textContent = now.toLocaleDateString('id-ID', options);
+}
+
+updateDate();
+
 // ======================
 // JADWAL SHOLAT (MYQURAN API + FALLBACK)
 // ======================
