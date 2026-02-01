@@ -171,10 +171,11 @@ toggleBtn.addEventListener('click', () => {
       </p>
 
       <iframe
+        id="liveIframe"
         loading="lazy"
         width="100%"
         height="240"
-        src="https://www.youtube.com/embed/7-Qf3g-0xEI?mute=1"
+        src="https://www.youtube.com/embed/7-Qf3g-0xEI?autoplay=1&mute=1&playsinline=1"
         frameborder="0"
         allow="autoplay; encrypted-media"
         allowfullscreen>
