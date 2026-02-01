@@ -153,16 +153,42 @@ function startCountdown(t) {
 }
 
 // ======================
-// LIVE (YOUTUBE)
+// LIVE Masjidil Haram (YOUTUBE)
 // ======================
 const toggleBtn = document.getElementById('toggleLive');
 const liveContainer = document.getElementById('liveContainer');
 
 toggleBtn.addEventListener('click', () => {
     liveContainer.classList.toggle('hidden');
-    if (!liveContainer.innerHTML) {
-        liveContainer.innerHTML = `<iframe loading="lazy" width="100%" height="240" src="https://www.youtube.com/embed/live_stream?channel=UC9k-yiEpRHMNVOnOi_aQK8w&mute=1&autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
-    }
+
+    if (liveContainer.dataset.loaded) return;
+    liveContainer.dataset.loaded = "true";
+
+    liveContainer.innerHTML = `
+    <div style="padding:10px; text-align:center;">
+      <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:8px">
+        Live mengikuti siaran resmi Masjidil Haram.
+      </p>
+
+      <iframe
+        loading="lazy"
+        width="100%"
+        height="240"
+        src="https://www.youtube.com/embed/live_stream?channel=UCc3Jj0zK7nLq8lJt7RkX1Vw&mute=1"
+        frameborder="0"
+        allow="autoplay; encrypted-media"
+        allowfullscreen>
+      </iframe>
+
+      <p style="font-size:0.75rem; color:#64748b; margin-top:8px">
+        Jika live tidak tampil, kemungkinan siaran sedang tidak aktif.
+      </p>
+    </div>
+  `;
+    document.getElementById("refreshLive").onclick = () => {
+        const iframe = document.getElementById("liveIframe");
+        iframe.src = iframe.src;
+    };
 });
 
 // ======================

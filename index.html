@@ -31,7 +31,7 @@
 
         <header class="header">
             <h1>MaQra</h1>
-            <p class="subtitle">Penjaga ritme harian</p>
+            <p class="subtitle">Jadwal Sholat Kita</p>
             <div id="realtime-clock"
                 style="font-size: 1.5rem; font-weight: 700; margin-top: 10px; color: var(--accent);">00:00:00</div>
             <div id="today-date" style="margin-top:6px; font-size:0.85rem; color:var(--text-secondary);">
@@ -107,9 +107,13 @@
 
         <!-- Live Masjidil Haram -->
         <section class="live">
-            <button id="toggleLive">Lihat kondisi Masjidil Haram (Live)</button>
+            <button id="toggleLive">Masjidil Haram (Live)</button>
 
             <div id="liveContainer" class="hidden"></div>
+            <button id="refreshLive" style="margin-top:10px;font-size:0.8rem">
+                Muat ulang live
+            </button>
+
         </section>
 
         <footer class="footer">
