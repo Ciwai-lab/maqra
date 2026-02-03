@@ -50,6 +50,19 @@ body {
     margin-top: 5px;
 }
 
+.realtime-clock {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-top: 10px;
+    color: var(--accent);
+}
+
+.today-date {
+    margin-top: 6px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
 .location label {
     font-size: 0.75rem;
     text-transform: uppercase;
@@ -155,6 +168,11 @@ button {
 button:hover {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(255, 255, 255, 0.1);
+}
+
+.refresh-live {
+    margin-top: 10px;
+    font-size: 0.8rem;
 }
 
 #liveContainer {
