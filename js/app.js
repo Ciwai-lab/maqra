@@ -29,6 +29,7 @@ updateClock();
 // =====================
 function updateDate() {
     const el = document.getElementById("today-date");
+    if (!el) return;
     const now = new Date();
 
     const options = {
@@ -47,7 +48,7 @@ updateDate();
 // JADWAL SHOLAT (MYQURAN API + FALLBACK)
 // ======================
 async function loadPrayerTimes(cityId) {
-    countdownEl.textContent = '...';
+    if (countdownEl) countdownEl.textContent = '...';
     const now = new Date();
     const y = now.getFullYear();
     const m = now.getMonth() + 1;
@@ -71,29 +72,35 @@ async function loadPrayerTimes(cityId) {
         }
     } catch (err) {
         console.warn("Switching to Aladhan fallback...");
-        const cityName = citySelect.options[citySelect.selectedIndex].text;
+        const cityName = citySelect?.options?.[citySelect.selectedIndex]?.text;
+        if (!cityName) {
+            throw new Error("Nama kota tidak ditemukan");
+        }
         const fallbackUrl = `https://api.aladhan.com/v1/timingsByCity?city=${cityName}&country=Indonesia&method=11`;
 
         try {
             const resFallback = await fetch(fallbackUrl);
             const dataFallback = await resFallback.json();
-            const t = dataFallback.data.timings;
+            const t = dataFallback?.data?.timings;
+            if (!t) {
+                throw new Error("Data Aladhan kosong");
+            }
             updateUI(t.Imsak, t.Fajr, t.Dhuhr, t.Asr, t.Maghrib, t.Isha);
             startCountdown(t);
         } catch (fallbackErr) {
-            countdownEl.textContent = 'Error Total';
+            if (countdownEl) countdownEl.textContent = 'Error Total';
             console.error('Semua API tumbang, bro:', fallbackErr);
         }
     }
 }
 
 function updateUI(imsyak, subuh, dzuhur, ashar, maghrib, isya) {
-    times.imsyak.textContent = imsyak;
-    times.subuh.textContent = subuh;
-    times.dzuhur.textContent = dzuhur;
-    times.ashar.textContent = ashar;
-    times.maghrib.textContent = maghrib;
-    times.isya.textContent = isya;
+    if (times.imsyak) times.imsyak.textContent = imsyak;
+    if (times.subuh) times.subuh.textContent = subuh;
+    if (times.dzuhur) times.dzuhur.textContent = dzuhur;
+    if (times.ashar) times.ashar.textContent = ashar;
+    if (times.maghrib) times.maghrib.textContent = maghrib;
+    if (times.isya) times.isya.textContent = isya;
 }
 
 // ======================
@@ -118,6 +125,7 @@ function startCountdown(t) {
         let nextId = '';
 
         for (let p of prayerList) {
+            if (!p.time || !p.time.includes(':')) continue;
             const [h, m] = p.time.split(':');
             const d = new Date();
             d.setHours(h, m, 0);
@@ -128,12 +136,18 @@ function startCountdown(t) {
         }
 
         if (!next) {
-            const [h, m] = prayerList[0].time.split(':');
+            const firstValid = prayerList.find(p => p.time && p.time.includes(':'));
+            if (!firstValid) {
+                if (countdownEl) countdownEl.textContent = '--:--:--';
+                if (nextPrayerEl) nextPrayerEl.textContent = '';
+                return;
+            }
+            const [h, m] = firstValid.time.split(':');
             next = new Date();
             next.setDate(next.getDate() + 1);
             next.setHours(h, m, 0);
-            nextName = prayerList[0].name;
-            nextId = prayerList[0].id;
+            nextName = firstValid.name;
+            nextId = firstValid.id;
         }
 
         const diff = next - now;
@@ -141,11 +155,13 @@ function startCountdown(t) {
         const mm = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
         const ss = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
 
-        countdownEl.textContent = `${hh}:${mm}:${ss}`;
-        nextPrayerEl.textContent = `Menuju ${nextName}`;
+        if (countdownEl) countdownEl.textContent = `${hh}:${mm}:${ss}`;
+        if (nextPrayerEl) nextPrayerEl.textContent = `Menuju ${nextName}`;
 
-        Object.values(times).forEach(el => el.parentElement.classList.remove('active-prayer'));
-        if (times[nextId]) times[nextId].parentElement.classList.add('active-prayer');
+        Object.values(times).forEach(el => {
+            if (el?.parentElement) el.parentElement.classList.remove('active-prayer');
+        });
+        if (times[nextId]?.parentElement) times[nextId].parentElement.classList.add('active-prayer');
     }
 
     tick();
@@ -158,13 +174,14 @@ function startCountdown(t) {
 const toggleBtn = document.getElementById('toggleLive');
 const liveContainer = document.getElementById('liveContainer');
 
-toggleBtn.addEventListener('click', () => {
-    liveContainer.classList.toggle('hidden');
+if (toggleBtn && liveContainer) {
+    toggleBtn.addEventListener('click', () => {
+        liveContainer.classList.toggle('hidden');
 
-    if (liveContainer.dataset.loaded) return;
-    liveContainer.dataset.loaded = "true";
+        if (liveContainer.dataset.loaded) return;
+        liveContainer.dataset.loaded = "true";
 
-    liveContainer.innerHTML = `
+        liveContainer.innerHTML = `
     <div style="padding:10px; text-align:center;">
       <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:8px">
         Live mengikuti siaran resmi Masjidil Haram.
@@ -186,20 +203,26 @@ toggleBtn.addEventListener('click', () => {
       </p>
     </div>
   `;
-    document.getElementById("refreshLive").onclick = () => {
-        const iframe = document.getElementById("liveIframe");
-        iframe.src = iframe.src;
-    };
-});
+        const refreshBtn = document.getElementById("refreshLive");
+        if (refreshBtn) {
+            refreshBtn.onclick = () => {
+                const iframe = document.getElementById("liveIframe");
+                if (iframe) iframe.src = iframe.src;
+            };
+        }
+    });
+}
 
 // ======================
 // INIT & STORAGE
 // ======================
-const savedCity = localStorage.getItem('maqra-city') || citySelect.value;
-citySelect.value = savedCity;
-loadPrayerTimes(savedCity);
+if (citySelect) {
+    const savedCity = localStorage.getItem('maqra-city') || citySelect.value;
+    citySelect.value = savedCity;
+    loadPrayerTimes(savedCity);
 
-citySelect.addEventListener('change', () => {
-    localStorage.setItem('maqra-city', citySelect.value);
-    loadPrayerTimes(citySelect.value);
-});
+    citySelect.addEventListener('change', () => {
+        localStorage.setItem('maqra-city', citySelect.value);
+        loadPrayerTimes(citySelect.value);
+    });
+}
