@@ -5,7 +5,50 @@ const clockEl = document.getElementById('realtime-clock');
 
 // Tambahkan Player Audio di sini
 const player = new Audio();
+let isMuted = true;
 let hasPlayedToday = "";
+
+const muteBtn = document.getElementById('muteBtn');
+
+function toggleMute() {
+    isMuted = !isMuted;
+
+    if (!isMuted) {
+        muteBtn.textContent = "🔊";
+        player.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==";
+        player.play().then(() => {
+            player.pause();
+            console.log("Audio Unlocked, bro!");
+        }).catch(e => console.log("Gagal unlock:", e));
+    } else {
+        muteBtn.textContent = "🔇";
+        player.pause();
+    }
+}
+
+function playRoutine(prayerName) {
+    if (isMuted) {
+        console.log("Audio lagi mute, skip bunyi.");
+        return;
+    }
+
+    console.log(`Memulai rutinitas: ${prayerName}`);
+    player.src = "/assets/audio/adzan.mp3";
+    player.play().catch(e => console.warn("Block autoplay!", e));
+
+    player.onended = () => {
+        if (prayerName === "Subuh") {
+            player.src = "/assets/audio/zikir-pagi.mp3";
+            player.play();
+        } else if (prayerName === "Ashar") {
+            player.src = "/assets/audio/zikir-petang.mp3";
+            player.play();
+        } else if (prayerName === "Isya") {
+            player.src = "/assets/audio/zikir-tidur.mp3";
+            player.play();
+        }
+    };
+}
 
 const times = {
     imsyak: document.getElementById('imsyak'),
@@ -236,5 +279,5 @@ if ('serviceWorker' in navigator) {
 function stopAudio() {
     player.pause();
     player.currentTime = 0;
-    console.log("Audio dimatikan paksa, bro.");
+    console.log("Audio Off.");
 }
