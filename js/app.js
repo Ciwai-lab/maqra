@@ -2,53 +2,11 @@ const citySelect = document.getElementById('city');
 const countdownEl = document.getElementById('countdown');
 const nextPrayerEl = document.getElementById('nextPrayer');
 const clockEl = document.getElementById('realtime-clock');
+const progressBarEl = document.getElementById('progress-bar');
 
-// Tambahkan Player Audio di sini
-const player = new Audio();
-let isMuted = true;
+const player = document.getElementById("maqra-player");
+let isMuted = localStorage.getItem("maqra-muted") === "1";
 let hasPlayedToday = "";
-
-const muteBtn = document.getElementById('muteBtn');
-
-function toggleMute() {
-    isMuted = !isMuted;
-
-    if (!isMuted) {
-        muteBtn.textContent = "🔊";
-        player.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==";
-        player.play().then(() => {
-            player.pause();
-            console.log("Audio Unlocked, bro!");
-        }).catch(e => console.log("Gagal unlock:", e));
-    } else {
-        muteBtn.textContent = "🔇";
-        player.pause();
-    }
-}
-
-function playRoutine(prayerName) {
-    if (isMuted) {
-        console.log("Audio lagi mute, skip bunyi.");
-        return;
-    }
-
-    console.log(`Memulai rutinitas: ${prayerName}`);
-    player.src = "/assets/audio/adzan.mp3";
-    player.play().catch(e => console.warn("Block autoplay!", e));
-
-    player.onended = () => {
-        if (prayerName === "Subuh") {
-            player.src = "/assets/audio/zikir-pagi.mp3";
-            player.play();
-        } else if (prayerName === "Ashar") {
-            player.src = "/assets/audio/zikir-petang.mp3";
-            player.play();
-        } else if (prayerName === "Isya") {
-            player.src = "/assets/audio/zikir-tidur.mp3";
-            player.play();
-        }
-    };
-}
 
 const times = {
     imsyak: document.getElementById('imsyak'),
@@ -63,24 +21,27 @@ const times = {
 // AUDIO ROUTINE (ADZAN -> ZIKIR)
 // ======================
 function playRoutine(prayerName) {
-    console.log(`Memulai rutinitas: ${prayerName}`);
+    if (!player) return;
+    if (isMuted || player.muted) {
+        console.log("Audio lagi mute, skip bunyi.");
+        return;
+    }
 
-    // 1. Putar Adzan
+    console.log(`Memulai rutinitas: ${prayerName}`);
     player.src = "/assets/audio/adzan.mp3";
     player.play().catch(e => {
         console.warn("Autoplay diblokir. Butuh klik user pertama kali di halaman ini.", e);
     });
 
-    // 2. Event Listener: Begitu Adzan Selesai
     player.onended = () => {
         if (prayerName === "Subuh") {
-            console.log("Adzan selesai, lanjut Zikir Pagi...");
             player.src = "/assets/audio/zikir-pagi.mp3";
             player.play();
         } else if (prayerName === "Ashar") {
-            console.log("Adzan selesai, lanjut Zikir Petang...");
             player.src = "/assets/audio/zikir-petang.mp3";
             player.play();
+        } else {
+            player.onended = null;
         }
     };
 }
@@ -227,6 +188,21 @@ function startCountdown(t) {
                 if (el?.parentElement) el.parentElement.classList.remove('active-prayer');
             });
             if (times[nextId]?.parentElement) times[nextId].parentElement.classList.add('active-prayer');
+
+            const validPrayers = prayerList.filter(p => p.time && p.time.includes(':'));
+            const nextIndex = validPrayers.findIndex(p => p.id === nextId);
+            if (progressBarEl && nextIndex >= 0 && validPrayers.length > 1) {
+                const prevPrayer = validPrayers[(nextIndex - 1 + validPrayers.length) % validPrayers.length];
+                const [ph, pm] = prevPrayer.time.split(':').map(Number);
+                const prev = new Date(next);
+                prev.setHours(ph, pm, 0, 0);
+                if (prev >= next) prev.setDate(prev.getDate() - 1);
+
+                const total = next - prev;
+                const elapsed = now - prev;
+                const pct = total > 0 ? Math.max(0, Math.min(100, (elapsed / total) * 100)) : 0;
+                progressBarEl.style.width = `${pct.toFixed(1)}%`;
+            }
         }
     }
 
@@ -239,19 +215,42 @@ function startCountdown(t) {
 // ======================
 const toggleBtn = document.getElementById('toggleLive');
 const liveContainer = document.getElementById('liveContainer');
+const refreshLiveBtn = document.getElementById('refreshLive');
+
+function renderLiveFrame() {
+    if (!liveContainer) return;
+    liveContainer.dataset.loaded = "true";
+    liveContainer.innerHTML = `
+        <div style="padding:10px; text-align:center;">
+            <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:8px">Live Masjidil Haram.</p>
+            <iframe id="liveIframe" loading="lazy" width="100%" height="240" 
+                src="https://www.youtube.com/embed/7-Qf3g-0xEI?autoplay=1&mute=1&playsinline=1" 
+                frameborder="0" allow="autoplay; encrypted-media" allowfullscreen>
+            </iframe>
+        </div>`;
+}
+
 if (toggleBtn && liveContainer) {
     toggleBtn.addEventListener('click', () => {
         liveContainer.classList.toggle('hidden');
-        if (liveContainer.dataset.loaded) return;
-        liveContainer.dataset.loaded = "true";
-        liveContainer.innerHTML = `
-            <div style="padding:10px; text-align:center;">
-                <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:8px">Live Masjidil Haram.</p>
-                <iframe id="liveIframe" loading="lazy" width="100%" height="240" 
-                    src="https://www.youtube.com/embed/7-Qf3g-0xEI?autoplay=1&mute=1&playsinline=1" 
-                    frameborder="0" allow="autoplay; encrypted-media" allowfullscreen>
-                </iframe>
-            </div>`;
+        if (!liveContainer.dataset.loaded) {
+            renderLiveFrame();
+        }
+    });
+}
+
+if (refreshLiveBtn && liveContainer) {
+    refreshLiveBtn.addEventListener('click', () => {
+        if (!liveContainer.dataset.loaded) {
+            liveContainer.classList.remove('hidden');
+            renderLiveFrame();
+            return;
+        }
+        const iframe = document.getElementById('liveIframe');
+        if (iframe) {
+            const base = iframe.src.split('?')[0];
+            iframe.src = `${base}?autoplay=1&mute=1&playsinline=1&t=${Date.now()}`;
+        }
     });
 }
 
@@ -276,8 +275,28 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-function stopAudio() {
-    player.pause();
-    player.currentTime = 0;
-    console.log("Audio Off.");
+function applyMuteState() {
+    const btn = document.getElementById("mute-btn");
+    if (!player || !btn) return;
+
+    player.muted = isMuted;
+    btn.textContent = isMuted ? "🔇" : "🔊";
 }
+
+function toggleMute() {
+    const btn = document.getElementById("mute-btn");
+    if (!player || !btn) return;
+
+    isMuted = !isMuted;
+    player.muted = isMuted;
+    localStorage.setItem("maqra-muted", isMuted ? "1" : "0");
+    btn.textContent = isMuted ? "🔇" : "🔊";
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("mute-btn");
+    if (btn) {
+        btn.addEventListener("click", toggleMute);
+    }
+    applyMuteState();
+});
