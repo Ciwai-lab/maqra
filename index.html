@@ -134,16 +134,18 @@
 
     <audio id="maqra-player" preload="auto"></audio>
 
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-        <label
-            style="font-weight: bold; color: #94a3b8; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">LOKASI</label>
+    <div id="today-date">Rabu, 11 Februari 2026</div>
+
+    <div style="text-align: center; margin-top: 10px;">
         <button id="muteBtn" onclick="toggleMute()"
-            style="background:none; border:none; cursor:pointer; font-size: 1.2rem; padding: 0 5px;">
+            style="background:none; border:none; cursor:pointer; font-size: 1.5rem; transition: transform 0.2s;">
             🔇
         </button>
     </div>
-    <select id="city">
-    </select>
+
+    <div class="label-lokasi" style="margin-top: 20px;">
+        <label>LOKASI</label>
+    </div>
 </body>
 
 </html>
