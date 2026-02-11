@@ -232,3 +232,9 @@ if ('serviceWorker' in navigator) {
             .catch(err => console.log('PWA Failed', err));
     });
 }
+
+function stopAudio() {
+    player.pause();
+    player.currentTime = 0;
+    console.log("Audio dimatikan paksa, bro.");
+}
