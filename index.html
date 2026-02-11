@@ -134,13 +134,16 @@
 
     <audio id="maqra-player" preload="auto"></audio>
 
-    <div class="audio-toggle" style="text-align: right; padding: 10px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <label
+            style="font-weight: bold; color: #94a3b8; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">LOKASI</label>
         <button id="muteBtn" onclick="toggleMute()"
-            style="background:none; border:none; font-size: 1.5rem; cursor:pointer;">
+            style="background:none; border:none; cursor:pointer; font-size: 1.2rem; padding: 0 5px;">
             🔇
         </button>
     </div>
-    </div>
+    <select id="city">
+    </select>
 </body>
 
 </html>
