@@ -5,9 +5,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>MaQra – Penjaga Waktu</title>
+    <title>MaQra – Jadwal Sholat</title>
     <meta name="description"
-        content="MaQra – penjaga ritme harian muslim. Jadwal sholat, imsyak, dan live Masjidil Haram." />
+        content="MaQra – jadwal sholat harian muslim. Cek subuh, dzuhur, ashar, maghrib, dan isya." />
 
     <link rel="icon" type="image/png" href="/assets/favicon.png" />
 
@@ -20,9 +20,9 @@
     <meta name="theme-color" content="#000000">
 
     <!-- OG -->
-    <meta property="og:title" content="Maqra CiwAI" />
+    <meta property="og:title" content="MaQra – Jadwal Sholat" />
     <meta property="og:description"
-        content="MaQra – penjaga ritme harian muslim. Jadwal sholat, imsyak, dan live Masjidil Haram." />
+        content="MaQra – jadwal sholat harian muslim. Cek subuh, dzuhur, ashar, maghrib, dan isya." />
     <meta property="og:url" content="https://maqra.ciwai.dev/" />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://ciwai.dev/assets/logo_ai.webp" />
@@ -34,19 +34,14 @@
 
         <header class="header">
             <h1>MaQra</h1>
-            <p class="subtitle">Jadwal Sholat Kita</p>
-            <div id="realtime-clock" class="realtime-clock">00:00:00</div>
-            <div id="today-date" class="today-date">
-            </div>
+            <p class="subtitle">Jadwal Sholat Harian</p>
+            <div id="today-date" class="today-date"></div>
         </header>
 
         <!-- Lokasi -->
         <section class="location">
             <div class="location-header">
                 <label for="city">Lokasi</label>
-                <button id="mute-btn" type="button" title="Matikan / Nyalakan suara adzan">
-                    🔊
-                </button>
             </div>
             <select id="city">
                 <option value="2445">Serang</option>
@@ -56,6 +51,7 @@
                 <option value="2446">Tangerang</option>
                 <option value="2447">Tangerang Selatan</option>
                 <option value="1301">Jakarta</option>
+                <option value="0101">Banda Aceh</option>
                 <option value="1205">Bogor</option>
                 <option value="1211">Depok</option>
                 <option value="1203">Bekasi</option>
@@ -88,23 +84,8 @@
             </select>
         </section>
 
-        <!-- Jadwal Sholat -->
-        <section class="prayer-times">
-            <div class="time imsak">
-                <span>Imsyak</span>
-                <strong id="imsyak">--:--</strong>
-            </div>
-
-            <div class="time"><span>Subuh</span><strong id="subuh">--:--</strong></div>
-            <div class="time"><span>Dzuhur</span><strong id="dzuhur">--:--</strong></div>
-            <div class="time"><span>Ashar</span><strong id="ashar">--:--</strong></div>
-            <div class="time"><span>Maghrib</span><strong id="maghrib">--:--</strong></div>
-            <div class="time"><span>Isya</span><strong id="isya">--:--</strong></div>
-        </section>
-
         <!-- Countdown -->
         <section class="countdown">
-            <p>Menuju sholat berikutnya</p>
             <h2 id="countdown">--:--:--</h2>
             <p id="nextPrayer" class="next-prayer"></p>
             <div class="progress-container">
@@ -112,15 +93,14 @@
             </div>
         </section>
 
-        <!-- Live Masjidil Haram -->
-        <section class="live">
-            <button id="toggleLive">Masjidil Haram (Live)</button>
-
-            <div id="liveContainer" class="hidden"></div>
-            <button id="refreshLive" class="refresh-live">
-                Muat ulang live
-            </button>
-
+        <!-- Jadwal Sholat -->
+        <section class="prayer-times">
+            <div class="prayer-block">
+                <h3>Akan Datang</h3>
+                <ul id="upcoming-prayers" class="prayer-list">
+                    <li class="empty-state">--</li>
+                </ul>
+            </div>
         </section>
 
         <footer class="footer">

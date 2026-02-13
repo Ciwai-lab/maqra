@@ -3,9 +3,7 @@
     --card-bg: #1e293b;
     --text-primary: #f8fafc;
     --text-secondary: #94a3b8;
-
     --accent: #4ade80;
-    --imsyak-color: #86efac;
 }
 
 * {
@@ -30,11 +28,15 @@ body {
 }
 
 .header {
-    text-align: center;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: start;
+    gap: 4px 16px;
     margin-bottom: 40px;
 }
 
 .header h1 {
+    grid-column: 1;
     margin: 0;
     font-size: 2.5rem;
     font-weight: 800;
@@ -42,25 +44,39 @@ body {
     background: linear-gradient(to right, #4ade80, #22c55e);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    text-align: left;
 }
 
 .subtitle {
+    grid-column: 1;
     color: var(--text-secondary);
     font-size: 0.9rem;
-    margin-top: 5px;
-}
-
-.realtime-clock {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-top: 10px;
-    color: var(--accent);
+    margin-top: 2px;
+    text-align: left;
 }
 
 .today-date {
+    grid-column: 2;
+    grid-row: 1 / span 2;
     margin-top: 6px;
     font-size: 0.85rem;
     color: var(--text-secondary);
+    text-align: right;
+}
+
+@media (max-width: 520px) {
+    .header {
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
+
+    .header h1,
+    .subtitle,
+    .today-date {
+        grid-column: 1;
+        grid-row: auto;
+        text-align: left;
+    }
 }
 
 .location label {
@@ -90,34 +106,53 @@ body {
 
 /* Prayer Times Card */
 .prayer-times {
-    background: var(--card-bg);
-    border-radius: 20px;
-    padding: 10px 20px;
+    display: grid;
+    gap: 14px;
     margin: 30px 0;
+}
+
+.prayer-block {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 14px 16px;
+    border: 1px solid #334155;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
 }
 
-.time {
-    display: flex;
-    justify-content: space-between;
-    padding: 15px 0;
-    border-bottom: 1px solid #334155;
-}
-
-.time:last-child {
-    border: none;
-}
-
-.time span {
+.prayer-block h3 {
+    margin: 0 0 10px;
+    font-size: 0.82rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
     color: var(--text-secondary);
 }
 
-.time strong {
-    font-size: 1.1rem;
+.prayer-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.prayer-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #334155;
+}
+
+.prayer-item:last-child {
+    border-bottom: none;
+}
+
+.prayer-item span {
+    color: var(--text-secondary);
+}
+
+.prayer-item strong {
+    font-size: 1.05rem;
 }
 
 .active-prayer {
-    position: relative;
     color: var(--accent) !important;
 }
 
@@ -126,7 +161,14 @@ body {
     text-shadow: 0 0 12px rgba(74, 222, 128, 0.45);
 }
 
+.empty-state {
+    padding: 6px 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
 .countdown {
+    margin-top: 18px;
     text-align: center;
     padding: 30px;
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
@@ -152,50 +194,12 @@ body {
     font-weight: 600;
 }
 
-/* Button & Live */
-button {
-    width: 100%;
-    margin-top: 20px;
-    padding: 14px;
-    border-radius: 12px;
-    border: none;
-    background: var(--text-primary);
-    color: var(--bg-color);
-    font-weight: 700;
-    cursor: pointer;
-}
-
-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 255, 255, 0.1);
-}
-
-.refresh-live {
-    margin-top: 10px;
-    font-size: 0.8rem;
-}
-
-#liveContainer {
-    margin-top: 20px;
-    border-radius: 15px;
-    overflow: hidden;
-    border: 1px solid #334155;
-}
-
-.hidden {
-    display: none;
-}
-
 footer {
     margin-top: 40px;
     text-align: center;
     color: var(--text-secondary);
     font-size: 0.75rem;
     opacity: 0.6;
-}
-
-.time.imsyak strong {
-    color: var(--imsyak-color);
 }
 
 .progress-container {
@@ -215,22 +219,5 @@ footer {
 }
 
 .location-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
     margin-bottom: 6px;
-}
-
-#mute-btn {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    font-size: 16px;
-    line-height: 1;
-    opacity: 0.7;
-    padding: 2px 4px;
-}
-
-#mute-btn:hover {
-    opacity: 1;
 }
