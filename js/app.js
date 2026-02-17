@@ -7,6 +7,19 @@ const upcomingPrayersEl = document.getElementById('upcoming-prayers');
 const player = document.getElementById("maqra-player");
 let hasPlayedToday = "";
 
+// ===== TV MODE DETECTION =====
+(function () {
+    const params = new URLSearchParams(window.location.search);
+    const isTV = params.get('tv') === '1';
+    if (isTV) {
+        document.body.classList.add('tv-mode');
+
+        document.documentElement.requestFullscreen?.().catch(() => { });
+
+        setInterval(() => location.reload(), 10 * 60 * 1000);
+    }
+})();
+
 // ======================
 // AUDIO ROUTINE (ADZAN -> ZIKIR)
 // ======================
@@ -111,7 +124,7 @@ async function loadPrayerTimes(cityId) {
         console.warn("Switching to Aladhan fallback...");
         const cityName = citySelect?.options?.[citySelect.selectedIndex]?.text;
         if (!cityName) throw new Error("Nama kota tidak ditemukan");
-        const fallbackUrl = `https://api.aladhan.com/v1/timingsByCity?city=${cityName}&country=Indonesia&method=11`;
+        const fallbackUrl = `https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(cityName)}&country=Indonesia&method=11`;
         try {
             const resFallback = await fetch(fallbackUrl);
             const dataFallback = await resFallback.json();
@@ -190,8 +203,8 @@ function startCountdown(t) {
             const nextIndex = prayerList.findIndex(p => p.id === nextId);
             if (progressBarEl && nextIndex >= 0 && prayerList.length > 1) {
                 const prevPrayer = prayerList[(nextIndex - 1 + prayerList.length) % prayerList.length];
-                const prev = parsePrayerDate(prevPrayer.time, next);
-                if (prev && prev >= next) prev.setDate(prev.getDate() - 1);
+                const prev = parsePrayerDate(prevPrayer.time, now);
+                if (prev && prev > now) prev.setDate(prev.getDate() - 1);
 
                 const total = prev ? next - prev : 0;
                 const elapsed = prev ? now - prev : 0;
